@@ -1,0 +1,14 @@
+openai
+pyTelegramBotAPI
+
+services:
+  - type: web
+    name: elaey-heartbot
+    env: python
+    buildCommand: ""
+    startCommand: "python main.py"
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
