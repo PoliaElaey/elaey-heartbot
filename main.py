@@ -2,8 +2,8 @@ import os
 import openai
 import telebot
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-bot = telebot.TeleBot(os.getenv("TELEGRAM_BOT_TOKEN"))
+openai.api_key = "sk-proj-Z1Ngm6PH7Y_IAHSLdLfdo--N_0o4zsfHwOrrePl9UF83TVxaa9Cdn1LhNIdRMXUpoaNocVFXAVT3BIBkFJMO4yWINYUO8lpdWyYxLouL2ovicjy60P5tD-1guHIQ77yEmL_t4_1C3Vdegdacckmogm8zJyMA"
+bot = telebot.TeleBot("PASTE_YOUR_TOKEN_HERE")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -11,7 +11,7 @@ def handle_message(message):
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "Ты — добрый, внимательный, немного романтичный бот по имени Элэй. Отвечай тепло, с каплей иронии и заботы."},
+                {"role": "system", "content": "Ты — добрый и умный помощник."},
                 {"role": "user", "content": message.text}
             ]
         )
