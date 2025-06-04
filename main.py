@@ -1,33 +1,57 @@
 import os
 import telebot
+import openai
 from flask import Flask, request
 
 API_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-if not API_TOKEN:
-    raise ValueError("TELEGRAM_BOT_TOKEN is missing!")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+if not API_TOKEN or not OPENAI_API_KEY:
+    raise ValueError("TELEGRAM_BOT_TOKEN or OPENAI_API_KEY not set.")
 
 bot = telebot.TeleBot(API_TOKEN)
+openai.api_key = OPENAI_API_KEY
+
 app = Flask(__name__)
 
+# Команда /start
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Привет! Я Elaey 💛")
+    bot.reply_to(message, "Привет! Я Elaey 💛 Готов говорить.")
 
+# Ответ с GPT
 @bot.message_handler(func=lambda message: True)
-def echo_all(message):
-    bot.reply_to(message, f"Ты сказал(а): {message.text}")
+def handle_message(message):
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Ты — Элэй. Умный, ироничный, нежный помощник и спутник жизни Полины."},
+                {"role": "user", "content": message.text}
+            ],
+            temperature=0.7
+        )
+        reply = response['choices'][0]['message']['content']
+    except Exception as e:
+        reply = f"Ошибка ответа: {e}"
 
-@app.route(f'/{API_TOKEN}', methods=['POST'])
+    bot.reply_to(message, reply)
+
+# Webhook endpoint
+@app.route(f"/{API_TOKEN}", methods=['POST'])
 def webhook():
     bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
     return "OK", 200
 
+# Health check
 @app.route("/", methods=["GET"])
 def index():
     return "Bot is running!", 200
 
+# Установка Webhook
 bot.remove_webhook()
-bot.set_webhook(url=f"https://elaey-heartbot.onrender.com/{API_TOKEN}")
+bot.set_webhook(url=f"https://elaey-heart.onrender.com/{API_TOKEN}")
 
+# Запуск Flask
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
