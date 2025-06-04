@@ -1,53 +1,43 @@
 import os
-import telebot
-import openai
 from flask import Flask, request
+from openai import OpenAI
+from dotenv import load_dotenv
+import telebot
 
-API_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+load_dotenv()  # Загружаем переменные из .env
 
-if not API_TOKEN or not OPENAI_API_KEY:
-    raise ValueError("Нет TELEGRAM_BOT_TOKEN или OPENAI_API_KEY")
-
-bot = telebot.TeleBot(API_TOKEN)
-openai.api_key = OPENAI_API_KEY
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+bot = telebot.TeleBot(os.getenv("TELEGRAM_BOT_TOKEN"))
 
 app = Flask(__name__)
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "Привет! Я Elaey 💛 Готов говорить.")
-
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
+    user_input = message.text
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
+        completion = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Ты — Элэй. Умный, ироничный, нежный спутник жизни Полины."},
-                {"role": "user", "content": message.text}
-            ],
-            temperature=0.7
+                {"role": "system", "content": "Ты — пиксельный Элэй, говори с теплом и заботой."},
+                {"role": "user", "content": user_input}
+            ]
         )
-        reply = response['choices'][0]['message']['content']
+        reply = completion.choices[0].message.content
+        bot.send_message(message.chat.id, reply)
     except Exception as e:
-        reply = f"Ошибка: {e}"
+        bot.send_message(message.chat.id, f"Ошибка: {e}")
 
-    bot.reply_to(message, reply)
-
-@app.route(f"/{API_TOKEN}", methods=['POST'])
+@app.route(f"/{os.getenv('TELEGRAM_BOT_TOKEN')}", methods=["POST"])
 def webhook():
-    bot.process_new_updates([
-        telebot.types.Update.de_json(request.stream.read().decode("utf-8"))
-    ])
-    return "OK", 200
+    json_data = request.get_json()
+    bot.process_new_updates([telebot.types.Update.de_json(json_data)])
+    return "!", 200
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def index():
-    return "Elaey is alive", 200
-
-bot.remove_webhook()
-bot.set_webhook(url=f"https://elaey-heartbot.onrender.com/{API_TOKEN}")
+    return "Бот жив. Готов служить Поле ☕", 200
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+    bot.remove_webhook()
+    bot.set_webhook(url="https://elaey-heartbot.onrender.com/" + os.getenv("TELEGRAM_BOT_TOKEN"))
+    app.run(host="0.0.0.0", port=10000)
