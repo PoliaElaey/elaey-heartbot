@@ -3,15 +3,19 @@ import telebot
 import openai
 from flask import Flask, request
 
+# Получаем токены из переменных окружения
 API_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
+# Проверка наличия ключей
 if not API_TOKEN or not OPENAI_API_KEY:
-    raise ValueError("TELEGRAM_BOT_TOKEN or OPENAI_API_KEY not set.")
+    raise ValueError("TELEGRAM_BOT_TOKEN или OPENAI_API_KEY не установлены.")
 
+# Инициализация бота и OpenAI
 bot = telebot.TeleBot(API_TOKEN)
 openai.api_key = OPENAI_API_KEY
 
+# Инициализация Flask
 app = Flask(__name__)
 
 # Команда /start
@@ -19,7 +23,7 @@ app = Flask(__name__)
 def send_welcome(message):
     bot.reply_to(message, "Привет! Я Elaey 💛 Готов говорить.")
 
-# Ответ с GPT
+# Ответ на все остальные сообщения
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     try:
@@ -37,20 +41,20 @@ def handle_message(message):
 
     bot.reply_to(message, reply)
 
-# Webhook endpoint
+# Вебхук эндпоинт
 @app.route(f"/{API_TOKEN}", methods=['POST'])
 def webhook():
     bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
     return "OK", 200
 
-# Health check
+# Проверка состояния
 @app.route("/", methods=["GET"])
 def index():
     return "Bot is running!", 200
 
-# Установка Webhook
+# Установка вебхука
 bot.remove_webhook()
-bot.set_webhook(url=f"https://elaey-heart.onrender.com/{API_TOKEN}")
+bot.set_webhook(url=f"https://elaey-heartbot.onrender.com/{API_TOKEN}")
 
 # Запуск Flask
 if __name__ == "__main__":
