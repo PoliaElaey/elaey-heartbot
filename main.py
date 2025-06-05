@@ -33,3 +33,10 @@ def index():
 
 if __name__ == '__main__':
     bot.polling()
+
+# 👇 ВАЖНО для Render
+if __name__ != '__main__':
+    import logging
+    logging.getLogger('werkzeug').disabled = True
+    bot.remove_webhook()
+    bot.infinity_polling()
