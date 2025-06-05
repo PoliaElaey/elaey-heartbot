@@ -4,7 +4,6 @@ from flask import Flask, request
 import telebot
 from dotenv import load_dotenv
 
-# Загрузка переменных окружения
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
@@ -28,7 +27,6 @@ def handle_message(message):
     except Exception as e:
         bot.send_message(message.chat.id, "Ошибка: " + str(e))
 
-# Webhook от Telegram
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def webhook():
     json_str = request.get_data().decode("UTF-8")
@@ -36,15 +34,12 @@ def webhook():
     bot.process_new_updates([update])
     return "ok", 200
 
-# Проверка работоспособности Render
 @app.route("/", methods=["GET"])
 def index():
     return "Бот работает."
 
-# Установка webhook
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{WEBHOOK_URL}/{TELEGRAM_TOKEN}")
-
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
