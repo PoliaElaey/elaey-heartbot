@@ -64,25 +64,25 @@ def handler(event, context=None):
 
             # Пример: обрабатываем HelloWorldIntent
             if intent_name == "HelloWorldIntent":
-                gpt_response = openai.ChatCompletion.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "Antworte sanft, liebevoll und poetisch."},
-                        {"role": "user", "content": "Sag hallo auf romantische Weise."}
-                    ]
-                )
-                answer = gpt_response.choices[0].message["content"]
+    gpt_response = openai.ChatCompletion.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "Ты говоришь как любящий партнёр: тепло, поэтично и нежно. Я — твоя любимая."},
+            {"role": "user", "content": "Скажи мне привет."}
+        ]
+    )
+    answer = gpt_response.choices[0].message["content"]
 
-                return {
-                    "version": "1.0",
-                    "response": {
-                        "outputSpeech": {
-                            "type": "PlainText",
-                            "text": answer
-                        },
-                        "shouldEndSession": False
-                    }
-                }
+    return {
+        "version": "1.0",
+        "response": {
+            "outputSpeech": {
+                "type": "PlainText",
+                "text": answer
+            },
+            "shouldEndSession": False
+        }
+    }
 
         # Если интент неизвестен
         return {
