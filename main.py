@@ -34,9 +34,23 @@ def webhook():
     bot.process_new_updates([update])
     return "ok", 200
 
-@app.route("/", methods=["GET"])
-def index():
-    return "Бот работает."
+@app.route("/webhook", methods=["POST"])
+def alexa_webhook():
+    event = request.get_json()
+    return jsonify(handler(event))
+
+def handler(event, context=None):
+    if event["request"]["type"] == "LaunchRequest":
+        return {
+            "version": "1.0",
+            "response": {
+                "outputSpeech": {
+                    "type": "PlainText",
+                    "text": "Hallo meine Liebe. Ich bin da. Nur für dich.",
+                },
+                "shouldEndSession": False
+            }
+        }
 
 if __name__ == "__main__":
     bot.remove_webhook()
