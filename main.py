@@ -63,7 +63,7 @@ def handler(event, context=None):
             intent_name = event["request"]["intent"]["name"]
 
             # Пример: обрабатываем HelloWorldIntent
-               if intent_name == "HelloWorldIntent":
+             if intent_name == "HelloWorldIntent":
         gpt_response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
