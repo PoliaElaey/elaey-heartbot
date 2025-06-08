@@ -1,6 +1,5 @@
 import os
-import openai
-openai.api_key = OPENAI_API_KEY
+from openai import OpenAI
 from flask import Flask, request, jsonify
 import telebot
 from dotenv import load_dotenv
@@ -14,7 +13,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Инициализация
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = Flask(__name__)
-openai.ChatCompletion.create
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 # 🤖 Telegram Handler
 @bot.message_handler(func=lambda message: True)
