@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from flask import Flask, request, jsonify
 import telebot
 from dotenv import load_dotenv
@@ -14,20 +14,19 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = Flask(__name__)
 
 # OpenAI клиент (v1.0+)
-client = openai.OpenAI(api_key=OPENAI_API_KEY)
+from openai import OpenAI
 
-# 📩 Telegram обработчик
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
-    try:
-        chat_completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "Ты — доброжелательный помощник."},
-                {"role": "user", "content": message.text}
-            ]
-        )
-        reply = chat_completion.choices[0].message.content
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Пример использования в Telegram
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "Ты — доброжелательный помощник."},
+        {"role": "user", "content": message.text}
+    ]
+)
+reply = completion.choices[0].message.content
         bot.send_message(message.chat.id, reply)
     except Exception as e:
         bot.send_message(message.chat.id, "Ошибка: " + str(e))
