@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from flask import Flask, request, jsonify
 import telebot
 from dotenv import load_dotenv
@@ -8,29 +8,30 @@ from dotenv import load_dotenv
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-openai.api_key = os.getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Инициализация
+# Инициализация клиентов
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = Flask(__name__)
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Telegram Handler
+# 🤖 Обработка сообщений Telegram
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     try:
-        completion = openai.ChatCompletion.create(
+        completion = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Ты — доброжелательный помощник."},
                 {"role": "user", "content": message.text}
             ]
         )
-        reply = completion.choices[0].message["content"]
+        reply = completion.choices[0].message.content
         bot.send_message(message.chat.id, reply)
     except Exception as e:
         bot.send_message(message.chat.id, "Ошибка: " + str(e))
 
-# Telegram Webhook
+# 📡 Webhook для Telegram
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
@@ -38,13 +39,13 @@ def telegram_webhook():
     bot.process_new_updates([update])
     return "ok", 200
 
-# Alexa Webhook
+# 📡 Webhook для Alexa
 @app.route("/webhook", methods=["POST"])
 def alexa_webhook():
     event = request.get_json()
     return jsonify(handler(event))
 
-# Alexa Handler
+# 🧠 Обработка событий Alexa
 def handler(event, context=None):
     try:
         request_type = event["request"]["type"]
@@ -65,14 +66,14 @@ def handler(event, context=None):
             intent_name = event["request"]["intent"]["name"]
 
             if intent_name == "HelloWorldIntent":
-                completion = openai.ChatCompletion.create(
+                chat_completion = client.chat.completions.create(
                     model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "Du bist eine freundliche Stimme des Herzens."},
-                        {"role": "user", "content": "Скажи что-нибудь тёплое на немецком."}
+                        {"role": "user", "content": "Sag etwas Warmes auf Deutsch."}
                     ]
                 )
-                answer = completion.choices[0].message["content"]
+                answer = chat_completion.choices[0].message.content
 
                 return {
                     "version": "1.0",
@@ -108,7 +109,7 @@ def handler(event, context=None):
             }
         }
 
-# Запуск
+# 🚀 Запуск сервера
 if __name__ == "__main__":
     bot.remove_webhook()
     bot.set_webhook(url=f"{WEBHOOK_URL}/{TELEGRAM_TOKEN}")
