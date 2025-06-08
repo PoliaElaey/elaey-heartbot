@@ -10,28 +10,28 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+# Инициализация
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 app = Flask(__name__)
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# OpenAI клиент (v1.0+)
-from openai import OpenAI
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-# Пример использования в Telegram
-completion = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "system", "content": "Ты — доброжелательный помощник."},
-        {"role": "user", "content": message.text}
-    ]
-)
-reply = completion.choices[0].message.content
+# 🤖 Telegram Handler
+@bot.message_handler(func=lambda message: True)
+def handle_message(message):
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "Ты — доброжелательный помощник."},
+                {"role": "user", "content": message.text}
+            ]
+        )
+        reply = completion.choices[0].message.content
         bot.send_message(message.chat.id, reply)
     except Exception as e:
         bot.send_message(message.chat.id, "Ошибка: " + str(e))
 
-# 📡 Telegram webhook
+# 📡 Telegram Webhook
 @app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
@@ -39,13 +39,13 @@ def telegram_webhook():
     bot.process_new_updates([update])
     return "ok", 200
 
-# 📡 Alexa webhook
+# 📡 Alexa Webhook
 @app.route("/webhook", methods=["POST"])
 def alexa_webhook():
     event = request.get_json()
     return jsonify(handler(event))
 
-# 🤖 Alexa обработчик
+# 🧠 Alexa Handler
 def handler(event, context=None):
     try:
         request_type = event["request"]["type"]
