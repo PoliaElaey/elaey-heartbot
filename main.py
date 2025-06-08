@@ -37,7 +37,7 @@ def webhook():
     return "ok", 200
 
 # Alexa Webhook
-@app.route("/webhook", methods=["POST"])
+@app.route("/api/alexa", methods=["POST"])
 def alexa_webhook():
     event = request.get_json()
     return jsonify(handler(event))
