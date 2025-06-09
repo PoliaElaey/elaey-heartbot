@@ -32,7 +32,7 @@ def handle_message(message):
         bot.send_message(message.chat.id, "Ошибка: " + str(e))
 
 # 📡 Webhook для Telegram
-@app.route(f"/{TELEGRAM_TOKEN}", methods=["GET","POST"])
+@app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
 def telegram_webhook():
     json_str = request.get_data().decode("UTF-8")
     update = telebot.types.Update.de_json(json_str)
@@ -42,6 +42,8 @@ def telegram_webhook():
 # 📡 Webhook для Alexa
 @app.route("/webhook", methods=["GET","POST"])
 def alexa_webhook():
+    if request.method == "GET":
+        return "Alexa Webhook is live.", 200
     event = request.get_json()
     return jsonify(handler(event))
 
